@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Step 4: Install dependencies with proper cache
+# id=npm-cache fixes the "Cache mount ID" error
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
     npm ci
 
