@@ -1,26 +1,25 @@
-# 1️⃣ Use official Node.js image
+# Step 1: Use official Node.js image
 FROM node:20-alpine
 
-# 2️⃣ Set working directory
+# Step 2: Set working directory
 WORKDIR /app
 
-# 3️⃣ Copy package files first (to leverage cache)
+# Step 3: Copy package files for caching
 COPY package.json package-lock.json ./
 
-# 4️⃣ Install dependencies with proper cache
-# ✅ id=npm-cache fixes the "Cache mount ID" error
+# Step 4: Install dependencies with proper cache
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
     npm ci
 
-# 5️⃣ Copy the rest of the application code
+# Step 5: Copy all source code
 COPY . .
 
-# 6️⃣ Build the project (if you have a build step)
+# Step 6: Build the project if needed
 RUN npm run build
 
-# 7️⃣ Expose port (Railway injects PORT env)
+# Step 7: Set port and expose
 ENV PORT=3000
 EXPOSE 3000
 
-# 8️⃣ Start the application
+# Step 8: Start the app
 CMD ["npm", "start"]
