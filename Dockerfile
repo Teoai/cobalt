@@ -1,26 +1,25 @@
-FROM node:24-alpine AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+# Step 1: Use official Node.js image
+FROM node:20-alpine
 
-FROM base AS build
-WORKDIR /app
-COPY . /app
-
-RUN corepack enable
-RUN apk add --no-cache python3 alpine-sdk
-
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --prod --frozen-lockfile
-
-RUN pnpm deploy --filter=@imput/cobalt-api --prod /prod/api
-
-FROM base AS api
+# Step 2: Set working directory
 WORKDIR /app
 
-COPY --from=build --chown=node:node /prod/api /app
-COPY --from=build --chown=node:node /app/.git /app/.git
+# Step 3: Copy package files for caching
+COPY package.json package-lock.json ./
 
-USER node
+# Step 4: Install dependencies with proper cache
+RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
+    npm ci
 
-EXPOSE 9000
-CMD [ "node", "src/cobalt" ]
+# Step 5: Copy all source code
+COPY . .
+
+# Step 6: Build the project if needed
+RUN npm run build
+
+# Step 7: Set port and expose
+ENV PORT=3000
+EXPOSE 3000
+
+# Step 8: Start the app
+CMD ["npm", "start"]
